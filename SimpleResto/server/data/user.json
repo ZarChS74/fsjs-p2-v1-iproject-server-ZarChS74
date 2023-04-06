@@ -1,0 +1,59 @@
+[
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john.doe@mail.com",
+      "phone": "081123456789",
+      "password": "12345",
+      "role": "Admin"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "email": "jane.smith@mail.com",
+      "phone": "081234567890",
+      "password": "12345",
+      "role": "Admin"
+    },
+    {
+      "id": 3,
+      "name": "Bob Johnson",
+      "email": "bob.johnson@mail.com",
+      "phone": "081345678901",
+      "password": "12345",
+      "role": "Staff"
+    },
+    {
+      "id": 4,
+      "name": "Alice Brown",
+      "email": "alice.brown@mail.com",
+      "phone": "081456789012",
+      "password": "12345",
+      "role": "Staff"
+    },
+    {
+      "id": 5,
+      "name": "Charlie Lee",
+      "email": "charlie.lee@mail.com",
+      "phone": "081567890123",
+      "password": "12345",
+      "role": "Staff"
+    },
+    {
+      "id": 6,
+      "name": "David Kim",
+      "email": "david.kim@mail.com",
+      "phone": "081678901234",
+      "password": "12345",
+      "role": "Staff"
+    },
+    {
+      "id": 7,
+      "name": "Emily Garcia",
+      "email": "emily.garcia@mail.com",
+      "phone": "081789012345",
+      "password": "12345",
+      "role": "Staff"
+    }
+  ]
+  
