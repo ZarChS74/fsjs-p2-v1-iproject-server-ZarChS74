@@ -74,7 +74,11 @@ class Controller {
     // menampilkan semua data user
     static async showUsersById(req, res, next) {
         try {
+            const { id } = req.params
             const users = await User.findAll({
+                where:{
+                    id: id
+                },
                 attributes: {
                     exclude: ["password", "createdAt", "updatedAt"]
                 }

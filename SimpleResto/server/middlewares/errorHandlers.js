@@ -23,9 +23,17 @@ function errorHandlers(err, req, res, next) {
         res.status(401).json({
             message: "Wrong Password!"
         })
+    } else if(err.name === 'PaymentError') {
+        res.status(402).json({
+            message: "Payment is not enough!"
+        })
     } else if(err.name === 'DataNotFound') {
         res.status(404).json({
             message: "Data not found!"
+        })
+    } else if(err.name === 'MenuNotFound') {
+        res.status(404).json({
+            message: "Menu not found!"
         })
     } else {
         console.log(err);
