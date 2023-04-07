@@ -2,6 +2,7 @@ const { passwordCompare } = require("../helpers/bcrypt");
 const { genNewToken } = require("../helpers/jwt");
 const { User, Menu, Order, Payment, Sequelize } = require("../models")
 const { Op } = Sequelize
+const midtransClient = require('midtrans-client');
 
 
 
@@ -34,7 +35,7 @@ class Controller {
                     email: email
                 }
             })
-            if(!user) {
+            if(!user.email) {
                 throw { name: "AccountNotFound" }
             }
 
@@ -225,88 +226,225 @@ class Controller {
     }
 
 // proses pembelian dan update untuk paymentStatus, itemStock, availability
+    // static async orderAndPayment(req, res, next) {
+    //     try {
+    //         console.log('<--- Order and Payment working!')
+
+    //         const { id } = req.params
+    //         // console.log(id, "<--- id");
+    //         const { quantity, paymentAmount } = req.body
+
+    //         const userId = req.login.id
+
+    //         const selectedMenu = await Menu.findByPk(id)
+
+    //         if(!selectedMenu) {
+    //             throw { name: 'MenuNotFound' }
+    //         }
+
+    //         const totalCost = selectedMenu.price * quantity
+            
+    //         console.log(totalCost, "<--- value dari totalCost");
+
+    //         const order = await Order.create({
+    //             orderTime: new Date(),
+    //             quantity: quantity,
+    //             totalCost: totalCost,
+    //             UserId: userId,
+    //             MenuId: id
+    //         })
+    //         console.log(order, "<-- dari order");
+    //         console.log(order.id, "<-- dari order.id");
+            
+    //         const paymentChange = paymentAmount - totalCost
+
+    //         console.log(paymentChange, "<--- value dari paymentChange");
+
+    //         if(paymentChange < 0) {
+    //             throw { name: 'PaymentError' }
+    //         }
+
+
+
+    //         let snap = new midtransClient.Snap({
+    //             // Set to true if you want Production Environment (accept real transaction).
+    //             isProduction : false,
+    //             serverKey : 'SB-Mid-server-P6NDjOtGypB7N567IMTzE0jE'
+    //         });
+        
+    //     let parameter = {
+    //         "transaction_details": {
+    //             "order_id": `TRANSACTION_${Math.ceil(500 * Math.random() * 1000)}`,
+    //             "gross_amount": totalCost
+    //         },
+    //         "credit_card":{
+    //             "secure" : true
+    //         },
+    //         "customer_details": {
+    //             "first_name": "budi",
+    //             "last_name": "pratama",
+    //             "email": "budi.pra@example.com",
+    //             "phone": "08111222333"
+    //         }
+    //     };
+        
+    //     const token = await snap.createTransaction(parameter)
+
+    //     res.status(200).json(token)
+            
+    //         // const payment = await Order.update({
+    //         //     paymentType: 'Payment Gateway',
+    //         //     paymentAmount: paymentAmount,
+    //         //     paymentChange: paymentChange,
+    //         //     paymentStatus: 'Paid'
+    //         // }, {
+    //         //     where: {
+    //         //         id: order.id
+    //         //     }
+    //         // })
+
+    //         // const updatedMenuStock = selectedMenu.itemStock - quantity
+
+    //         // console.log(updatedMenuStock, "<--- value dari updatedMenuStock");
+
+    //         // const availability = updatedMenuStock > 0 ? 'Ready' : 'Sold Out'
+
+    //         // console.log(availability, "<--- value dari availability");
+
+    //         // await Menu.update({
+    //         //     itemStock: updatedMenuStock,
+    //         //     availability: availability
+    //         // }, {
+    //         //     where: {
+    //         //         id: selectedMenu.id,
+    //         //         itemStock: {
+    //         //             [Op.gte]: quantity
+    //         //         }
+    //         //     }
+    //         // })
+
+    //         // res.status(201).json({
+    //         //     message: "Order and payment success!",
+    //         //     data: {
+    //         //         orderId: order.id,
+    //         //         paymentId: payment.id,
+    //         //         paymentChange: paymentChange
+    //         //     }
+    //         // })
+
+    //     } catch(err) {
+    //         console.log(err);
+    //         next(err)
+    //     }
+    // }
+
+
     static async orderAndPayment(req, res, next) {
         try {
-            console.log('<--- Order and Payment working!')
-
-            const { id } = req.params
-            // console.log(id, "<--- id");
-            const { quantity, paymentAmount } = req.body
-
-            const userId = req.login.id
-
-            const selectedMenu = await Menu.findByPk(id)
-
-            if(!selectedMenu) {
-                throw { name: 'MenuNotFound' }
-            }
-
-            const totalCost = selectedMenu.price * quantity
-            
-            console.log(totalCost, "<--- value dari totalCost");
-
-            const order = await Order.create({
-                orderTime: new Date(),
-                quantity: quantity,
-                totalCost: totalCost,
-                UserId: userId,
-                MenuId: id
-            })
-            console.log(order, "<-- dari order");
-            console.log(order.id, "<-- dari order.id");
-            const paymentChange = paymentAmount - totalCost
-
-            console.log(paymentChange, "<--- value dari paymentChange");
-
-            if(paymentChange < 0) {
-                throw { name: 'PaymentError' }
-            }
-
-            const payment = await Order.update({
-                paymentType: 'Payment Gateway',
-                paymentAmount: paymentAmount,
-                paymentChange: paymentChange,
-                paymentStatus: 'Paid'
-            }, {
-                where: {
-                    id: order.id
-                }
-            })
-
-            const updatedMenuStock = selectedMenu.itemStock - quantity
-
-            console.log(updatedMenuStock, "<--- value dari updatedMenuStock");
-
-            const availability = updatedMenuStock > 0 ? 'Ready' : 'Sold Out'
-
-            console.log(availability, "<--- value dari availability");
-
-            await Menu.update({
-                itemStock: updatedMenuStock,
-                availability: availability
-            }, {
-                where: {
-                    id: selectedMenu.id,
-                    itemStock: {
-                        [Op.gte]: quantity
-                    }
-                }
-            })
-
-            res.status(201).json({
-                message: "Order and payment success!",
-                data: {
-                    orderId: order.id,
-                    paymentId: payment.id,
-                    paymentChange: paymentChange
-                }
-            })
-
-        } catch(err) {
-            console.log(err);
-            next(err)
+          const midtransConfig = {
+            isProduction: false,
+            serverKey: 'SB-Mid-server-P6NDjOtGypB7N567IMTzE0jE',
+          };
+          const snap = new midtransClient.Snap(midtransConfig);
+      
+          console.log('<--- Order and Payment working!');
+      
+          const { id } = req.params;
+          const { quantity, paymentAmount } = req.body;
+      
+          const userId = req.login.id;
+      
+          const selectedMenu = await Menu.findByPk(id);
+      
+          if (!selectedMenu) {
+            throw { name: 'MenuNotFound' };
+          }
+      
+          const totalCost = selectedMenu.price * quantity;
+      
+          console.log(totalCost, '<--- value dari totalCost');
+      
+          const order = await Order.create({
+            orderTime: new Date(),
+            quantity: quantity,
+            totalCost: totalCost,
+            UserId: userId,
+            MenuId: id,
+          });
+      
+          console.log(order, '<-- dari order');
+          console.log(order.id, '<-- dari order.id');
+      
+          const paymentChange = paymentAmount - totalCost;
+      
+          console.log(paymentChange, '<--- value dari paymentChange');
+      
+          if (paymentChange < 0) {
+            throw { name: 'PaymentError' };
+          }
+      
+          let parameter = {
+            transaction_details: {
+              order_id: `TRANSACTION_${Math.ceil(500 * Math.random() * 1000)}`,
+              gross_amount: totalCost,
+            },
+            credit_card: {
+              secure: true,
+            },
+            customer_details: {
+              first_name: 'budi',
+              last_name: 'pratama',
+              email: 'budi.pra@example.com',
+              phone: '08111222333',
+            },
+          };
+      
+          const token = await snap.createTransaction(parameter);
+      
+          res.status(200).json(token);
+        } catch (err) {
+          console.log(err);
+          next(err);
         }
-    }
+      }
+      
+
+      static async updateStatusAfterPayment(req, res, next) {
+        try {
+          const { orderId, transactionStatus } = req.body;
+    
+          const order = await Order.findByPk(orderId);
+    
+          if (!order) {
+            throw { name: 'OrderNotFound' };
+          }
+    
+          const { paymentStatus } = order;
+    
+          if (paymentStatus !== 'Pending') {
+            throw { name: 'PaymentAlreadyProcessed' };
+          }
+    
+          await Order.update(
+            {
+              paymentStatus: transactionStatus,
+            },
+            {
+              where: {
+                id: orderId,
+              },
+            }
+          );
+    
+          res.status(200).json({
+            message: 'Payment status updated successfully',
+          });
+        } catch (err) {
+          console.log(err);
+          next(err);
+        }
+      }
+      
 
 }
 
